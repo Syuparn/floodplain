@@ -20,6 +20,8 @@ spec:
         dapr.io/app-id: {{ $app.name }}
         dapr.io/app-port: "50051"
         dapr.io/app-protocol: "grpc"
+        # enable gRPC proxy
+        dapr.io/config: "featureconfig"
     spec:
       containers:
         - name: {{ $app.name }}
