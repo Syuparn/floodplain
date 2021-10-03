@@ -1,0 +1,9 @@
+apiVersion: skaffold/v2beta23
+kind: Config
+deploy:
+  helm:
+    releases:
+      - name: dapr
+        repo: https://dapr.github.io/helm-charts/
+        remoteChart: dapr
+        version: "1.4.2"

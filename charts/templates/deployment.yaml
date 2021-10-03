@@ -15,6 +15,11 @@ spec:
     metadata:
       labels:
         app: {{ $app.name }}
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: {{ $app.name }}
+        dapr.io/app-port: "50051"
+        dapr.io/app-protocol: "grpc"
     spec:
       containers:
         - name: {{ $app.name }}

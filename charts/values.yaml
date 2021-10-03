@@ -5,7 +5,6 @@ replicaCount: 1
 apps:
   - name: floodplain
 
-
 # overridden by skaffold
 imageKey:
   repository: dummy

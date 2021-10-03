@@ -2,4 +2,4 @@
 target
 # avoid from rebuilding images by manifest change
 charts
-skaffold.yaml
+skaffold.*
