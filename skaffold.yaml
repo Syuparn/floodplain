@@ -1,0 +1,17 @@
+apiVersion: skaffold/v2beta23
+kind: Config
+build:
+  artifacts:
+  - image: floodplain
+  local:
+    # local deploy does not need image pushing
+    push: false
+deploy:
+  helm:
+    releases:
+    - name: floodplain
+      chartPath: charts
+      artifactOverrides:
+        imageKey: floodplain # no tag
+      imageStrategy:
+        helm: {}

@@ -1,0 +1,12 @@
+# default settings
+replicaCount: 1
+
+# app configs
+apps:
+  - name: floodplain
+
+
+# overridden by skaffold
+imageKey:
+  repository: dummy
+  tag: latest

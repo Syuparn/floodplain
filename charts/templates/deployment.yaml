@@ -1,0 +1,25 @@
+{{ range $app := .Values.apps }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $app.name }}
+  labels:
+    app: {{ $app.name }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ $app.name }}
+  replicas: {{ $.Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: {{ $app.name }}
+    spec:
+      containers:
+        - name: {{ $app.name }}
+          # set tag automatically by skaffold
+          image: "{{$app.name}}:{{$.Values.imageKey.tag}}"
+          # NOTE: `always` fails if cluster is in local (without pushing to container registry)
+          imagePullPolicy: IfNotPresent
+{{ end }}
