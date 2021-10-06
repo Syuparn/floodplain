@@ -13,13 +13,14 @@ pub struct MyGreeter {}
 
 #[tonic::async_trait]
 impl Greeter for MyGreeter {
-    async fn say_hello(
-        &self,
-        req: Request<HelloRequest>,
-    ) -> Result<Response<HelloReply>, Status> {
-        println!("request: {:?} (from {:?})", req.get_ref(), req.remote_addr());
+    async fn say_hello(&self, req: Request<HelloRequest>) -> Result<Response<HelloReply>, Status> {
+        println!(
+            "request: {:?} (from {:?})",
+            req.get_ref(),
+            req.remote_addr()
+        );
 
-        let reply = hello_world::HelloReply{
+        let reply = hello_world::HelloReply {
             message: format!("Hello, {}!", req.get_ref().name),
         };
 
