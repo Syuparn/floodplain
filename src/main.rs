@@ -3,6 +3,8 @@ use tonic::{transport::Server, Request, Response, Status};
 use hello_world::greeter_server::{Greeter, GreeterServer};
 use hello_world::{HelloReply, HelloRequest};
 
+mod domain;
+
 pub mod hello_world {
     // import generated gRPC code
     tonic::include_proto!("helloworld");
