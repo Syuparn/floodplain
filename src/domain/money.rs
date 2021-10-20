@@ -2,31 +2,37 @@ use parse_display::{Display, FromStr};
 
 use super::error;
 
-#[derive(Display, PartialEq, Debug)]
+#[derive(Display, PartialEq, Debug, Default)]
 #[display("{0}")]
 pub struct Deposit(Money);
 
-impl Deposit {
-    fn new(amount: u64, currency: String) -> Result<Deposit, error::WalletError> {
-        let c = currency.parse().map_err(|_| error::WalletError::InvalidCurrency(currency))?;
-        Ok(Deposit(Money{
-            amount: amount,
-            currency: c,
-        }))
-    }
-}
-
-#[derive(Display, PartialEq, Debug)]
+#[derive(Display, PartialEq, Debug, Default)]
 #[display("{amount}{currency}")]
-struct Money {
+pub struct Money {
     currency: Currency,
     amount: u64,
 }
 
+impl Money {
+    fn new(amount: u64, currency: String) -> Result<Money, error::WalletError> {
+        let c = currency.parse().map_err(|_| error::WalletError::InvalidCurrency(currency))?;
+        Ok(Money{
+            amount: amount,
+            currency: c,
+        })
+    }
+}
+
 #[derive(Display, FromStr, PartialEq, Debug)]
-enum Currency {
+pub enum Currency {
     JPY,
     USD,
+}
+
+impl Default for Currency {
+    fn default() -> Self {
+        Currency::JPY
+    }
 }
 
 #[cfg(test)]
@@ -51,9 +57,14 @@ mod tests {
     }
 
     #[test]
-    fn new_deposit() {
+    fn money_new() {
         // TODO: fix: binary operation `==` cannot be applied to type `std::result::Result<domain::money::Deposit, domain::error::WalletError>`
-        assert_eq!(Deposit::new(100, String::from("JPY")).unwrap(), Deposit(Money{currency: Currency::JPY, amount: 100}));
-        assert_eq!(Deposit::new(100, String::from("FOO")).unwrap_err(), error::WalletError::InvalidCurrency(String::from("FOO")));
+        assert_eq!(Money::new(100, String::from("JPY")).unwrap(), Money{currency: Currency::JPY, amount: 100});
+        assert_eq!(Money::new(100, String::from("FOO")).unwrap_err(), error::WalletError::InvalidCurrency(String::from("FOO")));
+    }
+
+    #[test]
+    fn deposit_default() {
+        assert_eq!(Deposit::default(), Deposit(Money{amount: 0, currency: Currency::JPY}));
     }
 }
