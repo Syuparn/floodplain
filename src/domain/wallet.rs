@@ -2,7 +2,8 @@ use parse_display::{Display, FromStr};
 
 use super::money::{Deposit};
 
-#[derive(PartialEq, Debug, Default)]
+#[derive(PartialEq, Debug, Builder, Default)]
+#[builder(pattern = "owned", setter(into))]
 pub struct Wallet {
     id: WalletID,
     deposit: Deposit,
@@ -10,7 +11,7 @@ pub struct Wallet {
 
 #[derive(Display, PartialEq, Debug, FromStr, Default)]
 #[display("wallet-{0}")]
-struct WalletID(String);
+pub struct WalletID(String);
 
 #[cfg(test)]
 mod tests {
@@ -20,5 +21,20 @@ mod tests {
     fn wallet_id_from_string() {
         assert_eq!("wallet-01FJE5QFC7W7ZS1JN5MR9YVRZW".parse(), Ok(WalletID(String::from("01FJE5QFC7W7ZS1JN5MR9YVRZW"))));
         assert!("exchange-01FJE5QFC7W7ZS1JN5MR9YVRZW".parse::<WalletID>().is_err());
+    }
+    
+    #[test]
+    fn wallet_builder() {
+        assert_eq!(
+            WalletBuilder::default()
+                .id(WalletID(String::from("01FJE5QFC7W7ZS1JN5MR9YVRZW")))
+                .deposit(Deposit::default())
+                .build()
+                .unwrap(),
+            Wallet{
+                id: WalletID(String::from("01FJE5QFC7W7ZS1JN5MR9YVRZW")),
+                deposit: Deposit::default(),
+            }
+        );
     }
 }

@@ -1,9 +1,13 @@
+#[macro_use]
+extern crate derive_builder;
+
 use tonic::{transport::Server, Request, Response, Status};
 
 use hello_world::greeter_server::{Greeter, GreeterServer};
 use hello_world::{HelloReply, HelloRequest};
 
 mod domain;
+mod usecase;
 
 pub mod hello_world {
     // import generated gRPC code
