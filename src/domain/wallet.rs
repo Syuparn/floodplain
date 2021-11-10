@@ -18,7 +18,7 @@ pub struct WalletID(String);
 pub struct WalletFactory {}
 
 impl WalletFactory {
-    pub fn new(&self) -> Result<Wallet, error::WalletError> {
+    pub fn create(&self) -> Result<Wallet, error::WalletError> {
         WalletBuilder::default()
             .id(WalletID(Ulid::new().to_string()))
             .deposit(Deposit::default())

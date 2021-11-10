@@ -22,9 +22,9 @@ where
     T: WalletRepository,
 {
     fn exec(&self, _: CreateInputData) -> Result<CreateOutputData, WalletError> {
-        let wallet = self.wallet_factory.new()?;
+        let wallet = self.wallet_factory.create()?;
         self.wallet_repository.save(&wallet)?;
-        Ok(CreateOutputData { wallet: wallet })
+        Ok(CreateOutputData { wallet })
     }
 }
 

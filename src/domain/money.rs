@@ -19,7 +19,7 @@ impl Money {
             .parse()
             .map_err(|_| error::WalletError::InvalidCurrency(currency))?;
         Ok(Money {
-            amount: amount,
+            amount,
             currency: c,
         })
     }
@@ -27,13 +27,13 @@ impl Money {
 
 #[derive(Display, FromStr, PartialEq, Debug)]
 pub enum Currency {
-    JPY,
-    USD,
+    Jpy,
+    Usd,
 }
 
 impl Default for Currency {
     fn default() -> Self {
-        Currency::JPY
+        Currency::Jpy
     }
 }
 
@@ -44,19 +44,19 @@ mod tests {
 
     #[test]
     fn currency_from_string() {
-        assert_eq!("JPY".parse(), Ok(Currency::JPY));
-        assert_eq!("USD".parse(), Ok(Currency::USD));
+        assert_eq!("Jpy".parse(), Ok(Currency::Jpy));
+        assert_eq!("Usd".parse(), Ok(Currency::Usd));
     }
 
     #[test]
     fn display_money() {
         assert_eq!(
             Money {
-                currency: Currency::JPY,
+                currency: Currency::Jpy,
                 amount: 100
             }
             .to_string(),
-            "100JPY"
+            "100Jpy"
         );
     }
 
@@ -64,11 +64,11 @@ mod tests {
     fn display_deposit() {
         assert_eq!(
             Deposit(Money {
-                currency: Currency::JPY,
+                currency: Currency::Jpy,
                 amount: 100
             })
             .to_string(),
-            "100JPY"
+            "100Jpy"
         );
     }
 
@@ -76,9 +76,9 @@ mod tests {
     fn money_new() {
         // TODO: fix: binary operation `==` cannot be applied to type `std::result::Result<domain::money::Deposit, domain::error::WalletError>`
         assert_eq!(
-            Money::new(100, String::from("JPY")).unwrap(),
+            Money::new(100, String::from("Jpy")).unwrap(),
             Money {
-                currency: Currency::JPY,
+                currency: Currency::Jpy,
                 amount: 100
             }
         );
@@ -94,7 +94,7 @@ mod tests {
             Deposit::default(),
             Deposit(Money {
                 amount: 0,
-                currency: Currency::JPY
+                currency: Currency::Jpy
             })
         );
     }
