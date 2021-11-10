@@ -12,12 +12,15 @@ struct CreateOutputData {
     wallet: Wallet,
 }
 
-struct CreateInteractor {
-    wallet_repository: Box<dyn WalletRepository>,
+struct CreateInteractor<T: WalletRepository> {
+    wallet_repository: T,
     wallet_factory: WalletFactory,
 }
 
-impl Port<CreateInputData, CreateOutputData> for CreateInteractor {
+impl<T> Port<CreateInputData, CreateOutputData> for CreateInteractor<T>
+where
+    T: WalletRepository,
+{
     fn exec(&self, _: CreateInputData) -> Result<CreateOutputData, WalletError> {
         let wallet = self.wallet_factory.new()?;
         self.wallet_repository.save(&wallet)?;
