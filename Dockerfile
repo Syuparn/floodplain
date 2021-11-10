@@ -5,6 +5,9 @@ WORKDIR /usr/src/floodplain
 # install rustfmt
 RUN rustup component add rustfmt
 
+# install clippy
+RUN rustup component add clippy
+
 # add target for cross-compiling
 RUN rustup target add x86_64-unknown-linux-musl
 

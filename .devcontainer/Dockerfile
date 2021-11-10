@@ -17,6 +17,9 @@ RUN apt-get update && \
 # install rustfmt
 RUN rustup component add rustfmt
 
+# install clippy
+RUN rustup component add clippy
+
 # install rust tools
 RUN cargo install cargo-edit cargo-update
 

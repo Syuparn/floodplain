@@ -4,3 +4,10 @@ description = "format source codes"
 workspace = false
 command = "cargo"
 args = ["fmt", "--all"]
+
+# cargo make lint
+[tasks.lint]
+description = "apply linter to source codes"
+workspace = false
+command = "cargo"
+args = ["clippy", "--fix"]
