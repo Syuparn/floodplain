@@ -1,0 +1,6 @@
+# cargo make fmt
+[tasks.fmt]
+description = "format source codes"
+workspace = false
+command = "cargo"
+args = ["fmt", "--all"]
