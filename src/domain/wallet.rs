@@ -1,3 +1,4 @@
+use mockall::{automock, predicate::*};
 use parse_display::{Display, FromStr};
 use ulid::Ulid;
 
@@ -27,6 +28,7 @@ impl WalletFactory {
     }
 }
 
+#[cfg_attr(test, automock)]
 pub trait WalletRepository {
     fn save(&self, wallet: &Wallet) -> Result<(), error::WalletError>;
 }
