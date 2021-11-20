@@ -29,3 +29,11 @@ where
 }
 
 // TODO: use adorn for logging
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // TODO: test
+
+}
