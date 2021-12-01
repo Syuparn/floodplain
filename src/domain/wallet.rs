@@ -3,13 +3,25 @@ use parse_display::{Display, FromStr};
 use ulid::Ulid;
 
 use super::error;
-use super::money::Deposit;
+use super::money::{Currency, Deposit, MoneyHolder};
 
 #[derive(PartialEq, Debug, Builder, Default)]
 #[builder(pattern = "owned", setter(into))]
 pub struct Wallet {
-    id: WalletID,
+    pub id: WalletID,
     deposit: Deposit,
+}
+
+// MoneyHolder is used for ORM etc., otherwise handlers must dig into them!
+// TODO: make inner fields private even though their values have to be referred
+impl MoneyHolder for Wallet {
+    fn currency(self: &Self) -> &Currency {
+        &self.deposit.0.currency
+    }
+
+    fn amount(self: &Self) -> u64 {
+        self.deposit.0.amount
+    }
 }
 
 #[derive(Display, PartialEq, Debug, FromStr, Default)]
@@ -24,7 +36,21 @@ impl WalletFactory {
             .id(WalletID(Ulid::new().to_string()))
             .deposit(Deposit::default())
             .build()
-            .map_err(|_| error::WalletError::Unexpected)
+            .map_err(|e| error::WalletError::Unexpected(e.to_string()))
+    }
+
+    // only for infrastracture and tests!
+    pub fn reconstruct(
+        &self,
+        id: String,
+        deposit: u64,
+        currency: String,
+    ) -> Result<Wallet, error::WalletError> {
+        let d = Deposit::new(deposit, currency)?;
+        Ok(Wallet {
+            id: WalletID(id),
+            deposit: d,
+        })
     }
 }
 

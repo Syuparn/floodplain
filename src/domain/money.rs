@@ -4,13 +4,20 @@ use super::error;
 
 #[derive(Display, PartialEq, Debug, Default)]
 #[display("{0}")]
-pub struct Deposit(Money);
+pub struct Deposit(pub Money);
+
+impl Deposit {
+    pub fn new(amount: u64, currency: String) -> Result<Deposit, error::WalletError> {
+        let m = Money::new(amount, currency)?;
+        Ok(Deposit(m))
+    }
+}
 
 #[derive(Display, PartialEq, Debug, Default)]
 #[display("{amount}{currency}")]
 pub struct Money {
-    currency: Currency,
-    amount: u64,
+    pub currency: Currency,
+    pub amount: u64,
 }
 
 impl Money {
@@ -25,9 +32,16 @@ impl Money {
     }
 }
 
+pub trait MoneyHolder {
+    fn currency(&self) -> &Currency;
+    fn amount(&self) -> u64;
+}
+
 #[derive(Display, FromStr, PartialEq, Debug)]
 pub enum Currency {
+    #[display(style = "UPPERCASE")]
     Jpy,
+    #[display(style = "UPPERCASE")]
     Usd,
 }
 
@@ -44,8 +58,8 @@ mod tests {
 
     #[test]
     fn currency_from_string() {
-        assert_eq!("Jpy".parse(), Ok(Currency::Jpy));
-        assert_eq!("Usd".parse(), Ok(Currency::Usd));
+        assert_eq!("JPY".parse(), Ok(Currency::Jpy));
+        assert_eq!("USD".parse(), Ok(Currency::Usd));
     }
 
     #[test]
@@ -84,6 +98,22 @@ mod tests {
         );
         assert_eq!(
             Money::new(100, String::from("FOO")).unwrap_err(),
+            error::WalletError::InvalidCurrency(String::from("FOO"))
+        );
+    }
+
+    #[test]
+    fn deposit_new() {
+        // TODO: fix: binary operation `==` cannot be applied to type `std::result::Result<domain::money::Deposit, domain::error::WalletError>`
+        assert_eq!(
+            Deposit::new(100, String::from("Jpy")).unwrap(),
+            Deposit(Money {
+                currency: Currency::Jpy,
+                amount: 100
+            })
+        );
+        assert_eq!(
+            Deposit::new(100, String::from("FOO")).unwrap_err(),
             error::WalletError::InvalidCurrency(String::from("FOO"))
         );
     }
