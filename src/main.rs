@@ -5,52 +5,24 @@ extern crate derive_builder;
 extern crate diesel;
 extern crate dotenv;
 
-use tonic::{transport::Server, Request, Response, Status};
-
-use hello_world::greeter_server::{Greeter, GreeterServer};
-use hello_world::{HelloReply, HelloRequest};
-
 mod domain;
-mod infrastructure;
 mod usecase;
+mod interface;
+mod infrastructure;
 
-pub mod hello_world {
-    // import generated gRPC code
-    tonic::include_proto!("helloworld");
-}
+use tonic::transport::Server;
 
-#[derive(Default)] // add default() method
-pub struct MyGreeter {}
-
-#[tonic::async_trait]
-impl Greeter for MyGreeter {
-    async fn say_hello(&self, req: Request<HelloRequest>) -> Result<Response<HelloReply>, Status> {
-        println!(
-            "request: {:?} (from {:?})",
-            req.get_ref(),
-            req.remote_addr()
-        );
-
-        let reply = hello_world::HelloReply {
-            message: format!("Hello, {}!", req.get_ref().name),
-        };
-
-        println!("response: {:?}", reply);
-
-        // return response
-        Ok(Response::new(reply))
-    }
-}
+use interface::service::walletgrpc::wallet_service_server::{WalletServiceServer};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let addr = "0.0.0.0:50051".parse().unwrap();
-    let greeter = MyGreeter::default();
+    let svc = interface::service::WalletServiceImpl::default();
 
-    println!("GreeterServer listening on {}", addr);
+    println!("WalletServer listening on {}", addr);
 
     Server::builder()
-        .add_service(GreeterServer::new(greeter))
+        .add_service(WalletServiceServer::new(svc))
         .serve(addr)
         .await?;
 
