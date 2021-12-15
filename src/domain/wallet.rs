@@ -28,10 +28,16 @@ impl MoneyHolder for Wallet {
 #[display("wallet-{0}")]
 pub struct WalletID(String);
 
-pub struct WalletFactory {}
+#[automock]
+pub trait WalletFactory {
+    fn create(&self) -> Result<Wallet, error::WalletError>;
+    fn reconstruct(&self,id: String, deposit: u64, currency: String) -> Result<Wallet, error::WalletError>;
+}
 
-impl WalletFactory {
-    pub fn create(&self) -> Result<Wallet, error::WalletError> {
+pub struct WalletFactoryImpl {}
+
+impl WalletFactory for WalletFactoryImpl {
+    fn create(&self) -> Result<Wallet, error::WalletError> {
         WalletBuilder::default()
             .id(WalletID(Ulid::new().to_string()))
             .deposit(Deposit::default())
@@ -40,7 +46,7 @@ impl WalletFactory {
     }
 
     // only for infrastracture and tests!
-    pub fn reconstruct(
+    fn reconstruct(
         &self,
         id: String,
         deposit: u64,
@@ -54,7 +60,7 @@ impl WalletFactory {
     }
 }
 
-#[cfg_attr(test, automock)]
+#[automock]
 pub trait WalletRepository {
     fn save(&self, wallet: &Wallet) -> Result<(), error::WalletError>;
 }

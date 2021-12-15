@@ -37,7 +37,7 @@ impl WalletRepository for WalletRepositoryImpl<'_> {
 
 #[cfg(test)]
 mod tests {
-    use super::super::super::domain::wallet::WalletFactory;
+    use super::super::super::domain::wallet::{WalletFactory, WalletFactoryImpl};
     use super::super::client;
     use super::*;
 
@@ -49,7 +49,7 @@ mod tests {
         diesel::delete(wallet::table).execute(&conn).unwrap();
 
         // main test
-        let w = WalletFactory {}
+        let w = WalletFactoryImpl {}
             .reconstruct(String::from("abc"), 100, String::from("JPY"))
             .unwrap();
         let r = WalletRepositoryImpl { conn: &conn };
