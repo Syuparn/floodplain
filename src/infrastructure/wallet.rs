@@ -1,10 +1,15 @@
+extern crate diesel;
 use diesel::pg::PgConnection;
+use r2d2_diesel::ConnectionManager;
 
 use super::super::domain::error;
 use super::super::domain::wallet::{Wallet, WalletRepository};
 use super::schema::wallet;
 use crate::diesel::RunQueryDsl; // NOTE: nessessary to use trait method `execute`
 use crate::domain::money::MoneyHolder; // NOTE: nessessary to use method `amount`, `currency
+
+type Pool = r2d2::Pool<ConnectionManager<PgConnection>>;
+
 
 #[derive(Insertable)]
 #[table_name = "wallet"]
@@ -14,11 +19,21 @@ pub struct NewWallet<'a> {
     pub currency: &'a str,
 }
 
-pub struct WalletRepositoryImpl<'a> {
-    pub conn: &'a PgConnection,
+pub struct WalletRepositoryImpl {
+    // NOTE: WalletRepositoryImpl cannot hold pgconnection directly because it is not thread-safe and
+    //       cannot be used for async function
+    pool: Pool,
 }
 
-impl WalletRepository for WalletRepositoryImpl<'_> {
+impl WalletRepositoryImpl {
+    pub fn new(pool: Pool) -> Self {
+        WalletRepositoryImpl {
+            pool: pool,
+        }
+    }
+}
+
+impl WalletRepository for WalletRepositoryImpl {
     fn save(&self, wallet: &Wallet) -> Result<(), error::WalletError> {
         let new_wallet = NewWallet {
             id: &wallet.id.to_string(),
@@ -26,9 +41,12 @@ impl WalletRepository for WalletRepositoryImpl<'_> {
             currency: &wallet.currency().to_string(),
         };
 
+        let conn = self.pool.get()
+            .map_err(|e| error::WalletError::Unexpected(e.to_string()))?;
+
         diesel::insert_into(wallet::table)
             .values(&new_wallet)
-            .execute(self.conn)
+            .execute(&*conn) // NOTE: deref to PgConnection by `*` (https://github.com/sfackler/r2d2/issues/37)
             .map_err(|e| error::WalletError::Unexpected(e.to_string()))?;
 
         Ok(())
@@ -45,14 +63,14 @@ mod tests {
     fn wallet_save_test() {
         // TODO: use test DB
         // setup: delete all records
-        let conn = client::establish_connection();
-        diesel::delete(wallet::table).execute(&conn).unwrap();
+        let pool = client::connection_pool();
+        diesel::delete(wallet::table).execute(&*pool.get().unwrap()).unwrap();
 
         // main test
         let w = WalletFactoryImpl {}
             .reconstruct(String::from("abc"), 100, String::from("JPY"))
             .unwrap();
-        let r = WalletRepositoryImpl { conn: &conn };
+        let r = WalletRepositoryImpl { pool: pool };
         assert_eq!(r.save(&w), Ok(()));
     }
 }

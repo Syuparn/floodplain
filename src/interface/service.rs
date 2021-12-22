@@ -1,7 +1,11 @@
-use tonic::{Request, Response, Status};
+use tonic::{Request, Response, Status, Code};
 
 use walletgrpc::wallet_service_server::{WalletService};
 use walletgrpc::{CreateReply, CreateRequest, Wallet};
+
+use super::super::domain::money::MoneyHolder;
+use super::super::usecase::port::Port;
+use super::super::usecase::create::{CreateInputData, CreateOutputData};
 
 pub mod walletgrpc {
     // import generated gRPC code
@@ -9,10 +13,41 @@ pub mod walletgrpc {
 }
 
 #[derive(Default)] // add default() method
-pub struct WalletServiceImpl {}
+pub struct WalletServiceImpl<T>
+where
+    T: Port<CreateInputData, CreateOutputData>
+{
+    port: T,
+}
+
+impl<T> WalletServiceImpl<T>
+where
+    T: Port<CreateInputData, CreateOutputData>
+{
+    pub fn new(port: T) -> Self {
+        WalletServiceImpl{
+            port: port,
+        }
+    }
+
+    fn encode(&self, out: CreateOutputData) -> CreateReply {
+        let w = out.wallet;
+
+        CreateReply{
+            wallet: Some(Wallet{
+                id: w.id.to_string(),
+                deposit: w.amount(),
+                currency: w.currency().to_string(),  
+            }),
+        }
+    }
+}
 
 #[tonic::async_trait]
-impl WalletService for WalletServiceImpl {
+impl<T> WalletService for WalletServiceImpl<T>
+where
+    T: Port<CreateInputData, CreateOutputData> + Send + Sync + 'static
+{
     async fn create(&self, req: Request<CreateRequest>) -> Result<Response<CreateReply>, Status> {
         println!(
             "request: {:?} (from {:?})",
@@ -20,18 +55,18 @@ impl WalletService for WalletServiceImpl {
             req.remote_addr()
         );
 
-        // TODO: impl
-        let reply = walletgrpc::CreateReply {
-            wallet: Some(Wallet{
-                id: String::from("abc"),
-                deposit: 0,
-                currency: String::from("JPY"),  
-            }),
-        };
+        let input = CreateInputData{};
+        let output = self.port.exec(input)
+            .map_err(|e| Status::new(Code::Internal, e.to_string()))?;
 
+        let reply = self.encode(output);
+
+        // TODO: use logging instead
         println!("response: {:?}", reply);
 
         // return response
         Ok(Response::new(reply))
     }
 }
+
+// TODO: test

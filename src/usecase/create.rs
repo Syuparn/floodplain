@@ -3,18 +3,31 @@ use crate::domain::error::WalletError;
 use crate::domain::wallet::{Wallet, WalletFactory, WalletRepository};
 
 #[derive(PartialEq, Debug)]
-struct CreateInputData {
+pub struct CreateInputData {
     // TODO: add data
 }
 
 #[derive(PartialEq, Debug)]
-struct CreateOutputData {
-    wallet: Wallet,
+pub struct CreateOutputData {
+    pub wallet: Wallet,
 }
 
-struct CreateInteractor<S: WalletRepository, T: WalletFactory> {
+pub struct CreateInteractor<S: WalletRepository, T: WalletFactory> {
     wallet_repository: S,
     wallet_factory: T,
+}
+
+impl<S, T> CreateInteractor<S, T>
+where
+    S: WalletRepository,
+    T: WalletFactory,
+{
+    pub fn new(repository: S, factory: T) -> Self {
+        CreateInteractor {
+            wallet_repository: repository,
+            wallet_factory: factory,
+        }
+    }
 }
 
 impl<S, T> Port<CreateInputData, CreateOutputData> for CreateInteractor<S, T>

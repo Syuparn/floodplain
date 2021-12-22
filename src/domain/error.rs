@@ -6,6 +6,4 @@ pub enum WalletError {
     InvalidCurrency(String),
     #[error("unexpected error: `{0}")]
     Unexpected(String),
-    #[error("unknown error")]
-    Unknown,
 }
