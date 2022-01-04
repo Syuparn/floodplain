@@ -29,8 +29,7 @@ $ kubectl port-forward svc/floodplain 50051:50051
 Forwarding from 127.0.0.1:50051 -> 50001
 Forwarding from [::1]:50051 -> 50001
 
-$ grpcurl -plaintext -d '{"name": "Rust"}' -rpc-header 'dapr-app-id: floodplain' -proto proto/helloworld/service.proto  localhost:50051 helloworld.Greeter/SayHello
+$ $ grpcurl -plaintext -rpc-header 'dapr-app-id: floodplain' -proto proto/wallet/service.proto  localhost:50051 wallet.WalletService/Create
 {
-  "message": "Hello, Rust!"
 }
 ```

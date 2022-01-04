@@ -29,4 +29,10 @@ spec:
           image: "{{$app.name}}:{{$.Values.imageKey.tag}}"
           # NOTE: `always` fails if cluster is in local (without pushing to container registry)
           imagePullPolicy: IfNotPresent
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: DATABASE_URL
 {{ end }}

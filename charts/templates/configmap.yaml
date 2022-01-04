@@ -1,0 +1,8 @@
+# TODO: use secret in production instead!
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  DATABASE_URL: postgres://wallet:walletpass@postgresql/postgres
+  RUST_BACKTRACE: "1"

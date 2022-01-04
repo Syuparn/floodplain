@@ -6,4 +6,10 @@ deploy:
       - name: dapr
         repo: https://dapr.github.io/helm-charts/
         remoteChart: dapr
-        version: "1.4.2"
+      - name: postgresql
+        repo: https://charts.bitnami.com/bitnami
+        remoteChart: postgresql
+        overrides:
+          postgresqlUsername: wallet
+          postgresqlPassword: walletpass
+          "global.postgresql.postgresqlDatabase": wallet
