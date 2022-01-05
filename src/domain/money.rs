@@ -70,7 +70,7 @@ mod tests {
                 amount: 100
             }
             .to_string(),
-            "100Jpy"
+            "100JPY"
         );
     }
 
@@ -82,7 +82,7 @@ mod tests {
                 amount: 100
             })
             .to_string(),
-            "100Jpy"
+            "100JPY"
         );
     }
 
@@ -90,7 +90,7 @@ mod tests {
     fn money_new() {
         // TODO: fix: binary operation `==` cannot be applied to type `std::result::Result<domain::money::Deposit, domain::error::WalletError>`
         assert_eq!(
-            Money::new(100, String::from("Jpy")).unwrap(),
+            Money::new(100, String::from("JPY")).unwrap(),
             Money {
                 currency: Currency::Jpy,
                 amount: 100
@@ -106,7 +106,7 @@ mod tests {
     fn deposit_new() {
         // TODO: fix: binary operation `==` cannot be applied to type `std::result::Result<domain::money::Deposit, domain::error::WalletError>`
         assert_eq!(
-            Deposit::new(100, String::from("Jpy")).unwrap(),
+            Deposit::new(100, String::from("JPY")).unwrap(),
             Deposit(Money {
                 currency: Currency::Jpy,
                 amount: 100
