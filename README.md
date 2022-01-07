@@ -34,10 +34,14 @@ $ DATABASE_URL="postgres://wallet:walletpass@localhost/postgres" diesel migratio
 Running migration 2021-11-24-051017_create_wallets
 
 # request gRPC to create new wallet
-$ grpcurl -plaintext -rpc-header 'dapr-app-id: floodplain' -proto proto/wallet/service.proto  localhost:50051 wallet.WalletService/Create
+$ kubectl port-forward svc/floodplain-dapr 50001:50001
+Forwarding from 127.0.0.1:50001 -> 50001
+Forwarding from [::1]:50001 -> 50001
+$ grpcurl -plaintext -emit-defaults -rpc-header 'dapr-app-id: floodplain' -proto proto/wallet/service.proto localhost:50001 wallet.WalletService/Create
 {
   "wallet": {
-    "id": "wallet-01FRKR1KGYDESY8H4G6WQXXNXE",
+    "id": "wallet-01FRTD44X460BB22D65S49CPK0",
+    "deposit": "0",
     "currency": "JPY"
   }
 }
