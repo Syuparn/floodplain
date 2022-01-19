@@ -7,12 +7,12 @@ option java_outer_classname = "WalletProto";
 package wallet;
 
 service WalletService {
-  rpc Create (CreateRequest) returns (CreateReply) {}
+  rpc Create (CreateRequest) returns (CreateResponse) {}
 }
 
 message CreateRequest {}
 
-message CreateReply {
+message CreateResponse {
   Wallet wallet = 1;
 }
 

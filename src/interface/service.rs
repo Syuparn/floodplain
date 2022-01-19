@@ -1,7 +1,7 @@
 use tonic::{Request, Response, Status, Code};
 
 use walletgrpc::wallet_service_server::{WalletService};
-use walletgrpc::{CreateReply, CreateRequest, Wallet};
+use walletgrpc::{CreateResponse, CreateRequest, Wallet};
 
 use super::super::domain::money::MoneyHolder;
 use super::super::usecase::port::Port;
@@ -30,10 +30,10 @@ where
         }
     }
 
-    fn encode(&self, out: CreateOutputData) -> CreateReply {
+    fn encode(&self, out: CreateOutputData) -> CreateResponse {
         let w = out.wallet;
 
-        CreateReply{
+        CreateResponse{
             wallet: Some(Wallet{
                 id: w.id.to_string(),
                 deposit: w.amount(),
@@ -48,7 +48,7 @@ impl<T> WalletService for WalletServiceImpl<T>
 where
     T: Port<CreateInputData, CreateOutputData> + Send + Sync + 'static
 {
-    async fn create(&self, req: Request<CreateRequest>) -> Result<Response<CreateReply>, Status> {
+    async fn create(&self, req: Request<CreateRequest>) -> Result<Response<CreateResponse>, Status> {
         println!(
             "request: {:?} (from {:?})",
             req.get_ref(),
