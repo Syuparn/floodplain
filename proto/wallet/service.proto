@@ -8,11 +8,20 @@ package wallet;
 
 service WalletService {
   rpc Create (CreateRequest) returns (CreateResponse) {}
+  rpc Get (GetRequest) returns (GetResponse) {}
 }
 
 message CreateRequest {}
 
 message CreateResponse {
+  Wallet wallet = 1;
+}
+
+message GetRequest {
+  string id = 1;
+}
+
+message GetResponse {
   Wallet wallet = 1;
 }
 

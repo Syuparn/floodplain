@@ -12,7 +12,11 @@ pub struct CreateOutputData {
     pub wallet: Wallet,
 }
 
-pub struct CreateInteractor<S: WalletRepository, T: WalletFactory> {
+pub struct CreateInteractor<S, T>
+where
+    S: WalletRepository,
+    T: WalletFactory,
+{
     wallet_repository: S,
     wallet_factory: T,
 }

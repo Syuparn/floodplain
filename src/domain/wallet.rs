@@ -25,8 +25,8 @@ impl MoneyHolder for Wallet {
 }
 
 #[derive(Display, PartialEq, Debug, FromStr, Default)]
-#[display("wallet-{0}")]
-pub struct WalletID(String);
+#[display("{0}")]
+pub struct WalletID(pub String);
 
 #[automock]
 pub trait WalletFactory {
@@ -63,6 +63,7 @@ impl WalletFactory for WalletFactoryImpl {
 #[automock]
 pub trait WalletRepository {
     fn save(&self, wallet: &Wallet) -> Result<(), error::WalletError>;
+    fn get(&self, id: &WalletID) -> Result<Wallet, error::WalletError>;
 }
 
 #[cfg(test)]
@@ -72,12 +73,9 @@ mod tests {
     #[test]
     fn wallet_id_from_string() {
         assert_eq!(
-            "wallet-01FJE5QFC7W7ZS1JN5MR9YVRZW".parse(),
+            "01FJE5QFC7W7ZS1JN5MR9YVRZW".parse(),
             Ok(WalletID(String::from("01FJE5QFC7W7ZS1JN5MR9YVRZW")))
         );
-        assert!("exchange-01FJE5QFC7W7ZS1JN5MR9YVRZW"
-            .parse::<WalletID>()
-            .is_err());
     }
 
     #[test]

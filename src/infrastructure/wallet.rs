@@ -1,9 +1,11 @@
 extern crate diesel;
 use diesel::pg::PgConnection;
 use r2d2_diesel::ConnectionManager;
+// necessary for query
+use diesel::prelude::*;
 
 use super::super::domain::error;
-use super::super::domain::wallet::{Wallet, WalletRepository};
+use super::super::domain::wallet::{Wallet, WalletRepository, WalletFactory, WalletID};
 use super::schema::wallet;
 use crate::diesel::RunQueryDsl; // NOTE: nessessary to use trait method `execute`
 use crate::domain::money::MoneyHolder; // NOTE: nessessary to use method `amount`, `currency
@@ -13,29 +15,42 @@ type Pool = r2d2::Pool<ConnectionManager<PgConnection>>;
 
 #[derive(Insertable)]
 #[table_name = "wallet"]
-pub struct NewWallet<'a> {
+pub struct NewWalletModel<'a> {
     pub id: &'a str,
     pub deposit: &'a i64,
     pub currency: &'a str,
 }
 
-pub struct WalletRepositoryImpl {
+#[derive(Queryable, Debug)]
+pub struct WalletModel {
+    pub id: String,
+    pub deposit: i64,
+    pub currency: Option<String>,
+}
+
+pub struct WalletRepositoryImpl<T: WalletFactory> {
     // NOTE: WalletRepositoryImpl cannot hold pgconnection directly because it is not thread-safe and
     //       cannot be used for async function
     pool: Pool,
+    wallet_factory: T
 }
 
-impl WalletRepositoryImpl {
-    pub fn new(pool: Pool) -> Self {
+impl<T> WalletRepositoryImpl<T>
+    where T: WalletFactory
+{
+    pub fn new(pool: Pool, wallet_factory: T) -> Self {
         WalletRepositoryImpl {
             pool: pool,
+            wallet_factory: wallet_factory,
         }
     }
 }
 
-impl WalletRepository for WalletRepositoryImpl {
+impl<T> WalletRepository for WalletRepositoryImpl<T>
+    where T: WalletFactory
+{
     fn save(&self, wallet: &Wallet) -> Result<(), error::WalletError> {
-        let new_wallet = NewWallet {
+        let new_wallet = NewWalletModel {
             id: &wallet.id.to_string(),
             deposit: &(wallet.amount() as i64),
             currency: &wallet.currency().to_string(),
@@ -51,11 +66,28 @@ impl WalletRepository for WalletRepositoryImpl {
 
         Ok(())
     }
+
+    fn get(&self, id: &WalletID) -> Result<Wallet, error::WalletError> {
+        let conn = self.pool.get()
+            .map_err(|e| error::WalletError::Unexpected(e.to_string()))?;
+        
+        let w = wallet::table
+            .select((wallet::id, wallet::deposit, wallet::currency))
+            .filter(wallet::id.eq(id.to_string()))
+            .first::<WalletModel>(&*conn)
+            .map_err(|e| error::WalletError::Unexpected(e.to_string()))?;
+
+        let deposit = u64::try_from(w.deposit)
+            .map_err(|_| error::WalletError::Unexpected(format!("{} exceeds u64", w.deposit)))?;
+        let currency = w.currency.unwrap_or(String::from("JPY"));
+
+        self.wallet_factory.reconstruct(w.id, deposit, currency)
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::super::super::domain::wallet::{WalletFactory, WalletFactoryImpl};
+    use super::super::super::domain::wallet::{WalletFactory, WalletFactoryImpl, MockWalletFactory};
     use super::super::client;
     use super::*;
 
@@ -70,7 +102,41 @@ mod tests {
         let w = WalletFactoryImpl {}
             .reconstruct(String::from("abc"), 100, String::from("JPY"))
             .unwrap();
-        let r = WalletRepositoryImpl { pool: pool };
+        let r = WalletRepositoryImpl { pool: pool, wallet_factory: MockWalletFactory::new() };
         assert_eq!(r.save(&w), Ok(()));
+    }
+
+    #[test]
+    fn wallet_get_test() {
+        // TODO: use test DB
+        // setup: delete all records and save one record
+        let pool = client::connection_pool();
+        diesel::delete(wallet::table).execute(&*pool.get().unwrap()).unwrap();
+        let w = WalletFactoryImpl{}
+            .reconstruct(String::from("abc"), 100, String::from("JPY"))
+            .unwrap();
+
+        insert_wallet(&w).unwrap();
+
+        // main test
+        let r = WalletRepositoryImpl { pool: pool, wallet_factory: WalletFactoryImpl{} };
+        assert_eq!(r.get(&w.id), Ok(w));
+    }
+
+    // test helper
+    fn insert_wallet(wallet: &Wallet) -> Result<(), error::WalletError> {
+        let w = NewWalletModel{
+            id: &wallet.id.to_string(),
+            deposit: &(wallet.amount() as i64),
+            currency: &wallet.currency().to_string(),
+        };
+
+        let pool = client::connection_pool();
+
+        diesel::insert_into(wallet::table)
+            .values(&w)
+            .execute(&*pool.get().unwrap())
+            .map_err(|e| error::WalletError::Unexpected(e.to_string()))?;
+        Ok(())
     }
 }

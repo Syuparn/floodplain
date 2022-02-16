@@ -5,14 +5,19 @@ use super::super::infrastructure::wallet::WalletRepositoryImpl;
 use super::super::infrastructure::client::connection_pool;
 use super::super::interface::service::WalletServiceImpl;
 use super::super::usecase::create::CreateInteractor;
+use super::super::usecase::get::GetInteractor;
 
-pub fn new_controller() -> WalletServiceImpl<CreateInteractor<WalletRepositoryImpl,WalletFactoryImpl>> {
-    let wallet_repository = WalletRepositoryImpl::new(connection_pool());
+pub fn new_controller() -> WalletServiceImpl<CreateInteractor<WalletRepositoryImpl<WalletFactoryImpl>,WalletFactoryImpl>, GetInteractor<WalletRepositoryImpl<WalletFactoryImpl>>> {
+    let wallet_repository = WalletRepositoryImpl::new(connection_pool(), WalletFactoryImpl{});
     let wallet_factory = WalletFactoryImpl{};
 
-    let interactor = CreateInteractor::new(wallet_repository, wallet_factory);
+    let create_interactor = CreateInteractor::new(wallet_repository, wallet_factory);
 
-    let controller = WalletServiceImpl::new(interactor);
+    // TODO: use repository/factory singletons
+    let wallet_repository = WalletRepositoryImpl::new(connection_pool(), WalletFactoryImpl{});
+    let get_interactor = GetInteractor::new(wallet_repository);
+
+    let controller = WalletServiceImpl::new(create_interactor, get_interactor);
 
     controller
 }
