@@ -9,6 +9,7 @@ package wallet;
 service WalletService {
   rpc Create (CreateRequest) returns (CreateResponse) {}
   rpc Get (GetRequest) returns (GetResponse) {}
+  rpc Delete (DeleteRequest) returns (DeleteResponse) {}
 }
 
 message CreateRequest {}
@@ -24,6 +25,12 @@ message GetRequest {
 message GetResponse {
   Wallet wallet = 1;
 }
+
+message DeleteRequest {
+  string id = 1;
+}
+
+message DeleteResponse {}
 
 message Wallet {
   string id = 1;

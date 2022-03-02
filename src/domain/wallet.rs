@@ -64,6 +64,7 @@ impl WalletFactory for WalletFactoryImpl {
 pub trait WalletRepository {
     fn save(&self, wallet: &Wallet) -> Result<(), error::WalletError>;
     fn get(&self, id: &WalletID) -> Result<Wallet, error::WalletError>;
+    fn delete(&self, wallet: Wallet) -> Result<(), error::WalletError>;
 }
 
 #[cfg(test)]
