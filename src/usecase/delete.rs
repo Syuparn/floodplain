@@ -4,7 +4,7 @@ use crate::domain::wallet::{WalletID, WalletRepository};
 
 #[derive(PartialEq, Debug)]
 pub struct DeleteInputData {
-    pub id: String
+    pub id: String,
 }
 
 #[derive(PartialEq, Debug)]
@@ -47,12 +47,18 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::wallet::{Wallet, MockWalletRepository, WalletFactory, WalletFactoryImpl};
+    use crate::domain::wallet::{MockWalletRepository, Wallet, WalletFactory, WalletFactoryImpl};
 
     // helper function to Delete dummy wallet
     // NOTE: since Wallet is not a reference and can be used only once, call this each time where wallet is required
     fn wallet() -> Wallet {
-        WalletFactoryImpl{}.reconstruct(String::from("01FJE5QFC7W7ZS1JN5MR9YVRZW"), 0, String::from("JPY")).unwrap()
+        WalletFactoryImpl {}
+            .reconstruct(
+                String::from("01FJE5QFC7W7ZS1JN5MR9YVRZW"),
+                0,
+                String::from("JPY"),
+            )
+            .unwrap()
     }
 
     #[test]
@@ -62,13 +68,13 @@ mod tests {
         wallet_repository.expect_get().returning(|_| Ok(wallet()));
         wallet_repository.expect_delete().returning(|_| Ok(()));
 
-        let interactor = DeleteInteractor{
+        let interactor = DeleteInteractor {
             wallet_repository: wallet_repository,
         };
 
         let id = "01FJE5QFC7W7ZS1JN5MR9YVRZW".parse().unwrap();
-        let actual = interactor.exec(DeleteInputData{id: id});
+        let actual = interactor.exec(DeleteInputData { id: id });
 
-        assert_eq!(actual, Ok(DeleteOutputData{}));
+        assert_eq!(actual, Ok(DeleteOutputData {}));
     }
 }

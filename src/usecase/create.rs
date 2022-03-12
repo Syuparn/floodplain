@@ -54,12 +54,16 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::wallet::{Wallet, MockWalletRepository, MockWalletFactory, WalletFactoryImpl};
+    use crate::domain::wallet::{
+        MockWalletFactory, MockWalletRepository, Wallet, WalletFactoryImpl,
+    };
 
     // helper function to create dummy wallet
     // NOTE: since Wallet is not a reference and can be used only once, call this each time where wallet is required
     fn wallet() -> Wallet {
-        WalletFactoryImpl{}.reconstruct(String::from("abc"), 0, String::from("JPY")).unwrap()
+        WalletFactoryImpl {}
+            .reconstruct(String::from("abc"), 0, String::from("JPY"))
+            .unwrap()
     }
 
     #[test]
@@ -72,13 +76,13 @@ mod tests {
         // mock create() method
         wallet_factory.expect_create().returning(|| Ok(wallet()));
 
-        let interactor = CreateInteractor{
+        let interactor = CreateInteractor {
             wallet_repository: wallet_repository,
             wallet_factory: wallet_factory,
         };
 
-        let actual = interactor.exec(CreateInputData{});
+        let actual = interactor.exec(CreateInputData {});
 
-        assert_eq!(actual, Ok(CreateOutputData{wallet: wallet()}));
+        assert_eq!(actual, Ok(CreateOutputData { wallet: wallet() }));
     }
 }

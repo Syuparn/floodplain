@@ -31,7 +31,12 @@ pub struct WalletID(pub String);
 #[automock]
 pub trait WalletFactory {
     fn create(&self) -> Result<Wallet, error::WalletError>;
-    fn reconstruct(&self,id: String, deposit: u64, currency: String) -> Result<Wallet, error::WalletError>;
+    fn reconstruct(
+        &self,
+        id: String,
+        deposit: u64,
+        currency: String,
+    ) -> Result<Wallet, error::WalletError>;
 }
 
 pub struct WalletFactoryImpl {}

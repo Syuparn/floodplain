@@ -1,14 +1,16 @@
 use tonic::{Request, Response, Status};
 
-use walletgrpc::wallet_service_server::{WalletService};
-use walletgrpc::{CreateRequest, CreateResponse, GetRequest, GetResponse, DeleteRequest, DeleteResponse};
+use walletgrpc::wallet_service_server::WalletService;
+use walletgrpc::{
+    CreateRequest, CreateResponse, DeleteRequest, DeleteResponse, GetRequest, GetResponse,
+};
 
-use super::handle::{RequestHandler, RequestHandlerImpl};
-use super::methodtype::{CreateMethod, GetMethod, DeleteMethod};
-use super::super::usecase::port::Port;
 use super::super::usecase::create::{CreateInputData, CreateOutputData};
-use super::super::usecase::get::{GetInputData, GetOutputData};
 use super::super::usecase::delete::{DeleteInputData, DeleteOutputData};
+use super::super::usecase::get::{GetInputData, GetOutputData};
+use super::super::usecase::port::Port;
+use super::handle::{RequestHandler, RequestHandlerImpl};
+use super::methodtype::{CreateMethod, DeleteMethod, GetMethod};
 
 pub mod walletgrpc {
     // import generated gRPC code
@@ -33,7 +35,7 @@ where
     U: Port<In = DeleteInputData, Out = DeleteOutputData>,
 {
     pub fn new(create_port: S, get_port: T, delete_port: U) -> Self {
-        WalletServiceImpl{
+        WalletServiceImpl {
             create_handler: RequestHandlerImpl::new(create_port),
             get_handler: RequestHandlerImpl::new(get_port),
             delete_handler: RequestHandlerImpl::new(delete_port),
@@ -48,7 +50,10 @@ where
     T: Port<In = GetInputData, Out = GetOutputData> + Send + Sync + 'static,
     U: Port<In = DeleteInputData, Out = DeleteOutputData> + Send + Sync + 'static,
 {
-    async fn create(&self, req: Request<CreateRequest>) -> Result<Response<CreateResponse>, Status> {
+    async fn create(
+        &self,
+        req: Request<CreateRequest>,
+    ) -> Result<Response<CreateResponse>, Status> {
         self.create_handler.handle(req)
     }
 
@@ -56,7 +61,10 @@ where
         self.get_handler.handle(req)
     }
 
-    async fn delete(&self, req: Request<DeleteRequest>) -> Result<Response<DeleteResponse>, Status> {
+    async fn delete(
+        &self,
+        req: Request<DeleteRequest>,
+    ) -> Result<Response<DeleteResponse>, Status> {
         self.delete_handler.handle(req)
     }
 }

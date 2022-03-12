@@ -7,9 +7,9 @@ extern crate dotenv;
 
 mod di;
 mod domain;
-mod usecase;
-mod interface;
 mod infrastructure;
+mod interface;
+mod usecase;
 
 use tonic::transport::Server;
 

@@ -1,20 +1,32 @@
-use tonic::{Request, Response, Status, Code};
-use super::converter::{Converter, ConverterImpl};
-use crate::domain::error::WalletError;
-use super::methodtype::{Method, CreateMethod, GetMethod, DeleteMethod};
-use super::super::usecase::port::Port;
 use super::super::usecase::create::{CreateInputData, CreateOutputData};
-use super::super::usecase::get::{GetInputData, GetOutputData};
 use super::super::usecase::delete::{DeleteInputData, DeleteOutputData};
+use super::super::usecase::get::{GetInputData, GetOutputData};
+use super::super::usecase::port::Port;
+use super::converter::{Converter, ConverterImpl};
+use super::methodtype::{CreateMethod, DeleteMethod, GetMethod, Method};
+use crate::domain::error::WalletError;
+use tonic::{Code, Request, Response, Status};
 
 pub trait RequestHandler {
     type Method: Method;
     type Converter: Converter<Self::Method>;
 
     // NOTE: `Self::Method::InputData` raises ambiguous associated type error
-    fn exec(&self, input: <<Self as RequestHandler>::Converter as Converter<Self::Method>>::InputData) -> Result<<<Self as RequestHandler>::Converter as Converter<Self::Method>>::OutputData, WalletError>;
+    fn exec(
+        &self,
+        input: <<Self as RequestHandler>::Converter as Converter<Self::Method>>::InputData,
+    ) -> Result<
+        <<Self as RequestHandler>::Converter as Converter<Self::Method>>::OutputData,
+        WalletError,
+    >;
 
-    fn handle(&self, req: Request<<<Self as RequestHandler>::Converter as Converter<Self::Method>>::Req>) -> Result<Response<<<Self as RequestHandler>::Converter as Converter<Self::Method>>::Res>, Status> {
+    fn handle(
+        &self,
+        req: Request<<<Self as RequestHandler>::Converter as Converter<Self::Method>>::Req>,
+    ) -> Result<
+        Response<<<Self as RequestHandler>::Converter as Converter<Self::Method>>::Res>,
+        Status,
+    > {
         println!(
             "request: {:?} (from {:?})",
             req.get_ref(),
@@ -22,7 +34,8 @@ pub trait RequestHandler {
         );
 
         let input = Self::Converter::decode(&req.get_ref());
-        let output = self.exec(input)
+        let output = self
+            .exec(input)
             .map_err(|e| Status::new(Code::Internal, e.to_string()))?;
 
         let res = Self::Converter::encode(output);
@@ -50,8 +63,11 @@ where
     M: Method,
 {
     pub fn new(port: P) -> Self {
-        RequestHandlerImpl{port: port, _method: std::marker::PhantomData}
-    } 
+        RequestHandlerImpl {
+            port: port,
+            _method: std::marker::PhantomData,
+        }
+    }
 }
 
 // FIXME: remove boilerplates below

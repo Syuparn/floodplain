@@ -1,9 +1,11 @@
-use super::service::walletgrpc::{CreateRequest, CreateResponse, GetRequest, GetResponse, DeleteRequest, DeleteResponse, Wallet};
 use super::super::domain::money::MoneyHolder;
 use super::super::usecase::create::{CreateInputData, CreateOutputData};
-use super::super::usecase::get::{GetInputData, GetOutputData};
 use super::super::usecase::delete::{DeleteInputData, DeleteOutputData};
-use super::methodtype::{Method, CreateMethod, GetMethod, DeleteMethod};
+use super::super::usecase::get::{GetInputData, GetOutputData};
+use super::methodtype::{CreateMethod, DeleteMethod, GetMethod, Method};
+use super::service::walletgrpc::{
+    CreateRequest, CreateResponse, DeleteRequest, DeleteResponse, GetRequest, GetResponse, Wallet,
+};
 
 pub trait Converter<M: Method> {
     type Req: std::fmt::Debug;
@@ -26,14 +28,14 @@ impl Converter<CreateMethod> for ConverterImpl<CreateMethod> {
     type OutputData = CreateOutputData;
 
     fn decode(_: &CreateRequest) -> CreateInputData {
-        CreateInputData{}
+        CreateInputData {}
     }
 
     fn encode(out: CreateOutputData) -> CreateResponse {
         let w = out.wallet;
 
-        CreateResponse{
-            wallet: Some(Wallet{
+        CreateResponse {
+            wallet: Some(Wallet {
                 id: w.id.to_string(),
                 deposit: w.amount(),
                 currency: w.currency().to_string(),
@@ -49,16 +51,14 @@ impl Converter<GetMethod> for ConverterImpl<GetMethod> {
     type OutputData = GetOutputData;
 
     fn decode(req: &GetRequest) -> GetInputData {
-        GetInputData{
-            id: req.id.clone(),
-        }
+        GetInputData { id: req.id.clone() }
     }
 
     fn encode(out: GetOutputData) -> GetResponse {
         let w = out.wallet;
 
-        GetResponse{
-            wallet: Some(Wallet{
+        GetResponse {
+            wallet: Some(Wallet {
                 id: w.id.to_string(),
                 deposit: w.amount(),
                 currency: w.currency().to_string(),
@@ -74,12 +74,10 @@ impl Converter<DeleteMethod> for ConverterImpl<DeleteMethod> {
     type OutputData = DeleteOutputData;
 
     fn decode(req: &DeleteRequest) -> DeleteInputData {
-        DeleteInputData{
-            id: req.id.clone(),
-        }
+        DeleteInputData { id: req.id.clone() }
     }
 
     fn encode(_: DeleteOutputData) -> DeleteResponse {
-        DeleteResponse{}
+        DeleteResponse {}
     }
 }
