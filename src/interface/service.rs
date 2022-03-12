@@ -1,9 +1,10 @@
-use tonic::{Request, Response, Status, Code};
+use tonic::{Request, Response, Status};
 
 use walletgrpc::wallet_service_server::{WalletService};
-use walletgrpc::{CreateRequest, CreateResponse, GetRequest, GetResponse, DeleteRequest, DeleteResponse, Wallet};
+use walletgrpc::{CreateRequest, CreateResponse, GetRequest, GetResponse, DeleteRequest, DeleteResponse};
 
-use super::super::domain::money::MoneyHolder;
+use super::handle::{RequestHandler, RequestHandlerImpl};
+use super::methodtype::{CreateMethod, GetMethod, DeleteMethod};
 use super::super::usecase::port::Port;
 use super::super::usecase::create::{CreateInputData, CreateOutputData};
 use super::super::usecase::get::{GetInputData, GetOutputData};
@@ -14,139 +15,48 @@ pub mod walletgrpc {
     tonic::include_proto!("wallet");
 }
 
-// FIXME: replace Port with associative type
 pub struct WalletServiceImpl<S, T, U>
 where
-    S: Port<CreateInputData, CreateOutputData>,
-    T: Port<GetInputData, GetOutputData>,
-    U: Port<DeleteInputData, DeleteOutputData>,
+    S: Port<In = CreateInputData, Out = CreateOutputData>,
+    T: Port<In = GetInputData, Out = GetOutputData>,
+    U: Port<In = DeleteInputData, Out = DeleteOutputData>,
 {
-    create_port: S,
-    get_port: T,
-    delete_port: U,
+    create_handler: RequestHandlerImpl<S, CreateMethod>,
+    get_handler: RequestHandlerImpl<T, GetMethod>,
+    delete_handler: RequestHandlerImpl<U, DeleteMethod>,
 }
 
 impl<S, T, U> WalletServiceImpl<S, T, U>
 where
-    S: Port<CreateInputData, CreateOutputData>,
-    T: Port<GetInputData, GetOutputData>,
-    U: Port<DeleteInputData, DeleteOutputData>,
+    S: Port<In = CreateInputData, Out = CreateOutputData>,
+    T: Port<In = GetInputData, Out = GetOutputData>,
+    U: Port<In = DeleteInputData, Out = DeleteOutputData>,
 {
     pub fn new(create_port: S, get_port: T, delete_port: U) -> Self {
         WalletServiceImpl{
-            create_port: create_port,
-            get_port: get_port,
-            delete_port: delete_port,
+            create_handler: RequestHandlerImpl::new(create_port),
+            get_handler: RequestHandlerImpl::new(get_port),
+            delete_handler: RequestHandlerImpl::new(delete_port),
         }
-    }
-
-    fn encode_output_create(&self, out: CreateOutputData) -> CreateResponse {
-        let w = out.wallet;
-
-        CreateResponse{
-            wallet: Some(Wallet{
-                id: w.id.to_string(),
-                deposit: w.amount(),
-                currency: w.currency().to_string(),
-            }),
-        }
-    }
-
-    fn encode_input_get(&self, req: &GetRequest) -> Result<GetInputData, Box<dyn std::error::Error>> {
-        Ok(GetInputData{
-            id: req.id.clone(),
-        })
-    }
-
-    fn encode_output_get(&self, out: GetOutputData) -> GetResponse {
-        let w = out.wallet;
-
-        GetResponse{
-            wallet: Some(Wallet{
-                id: w.id.to_string(),
-                deposit: w.amount(),
-                currency: w.currency().to_string(),
-            }),
-        }
-    }
-
-    fn encode_input_delete(&self, req: &DeleteRequest) -> Result<DeleteInputData, Box<dyn std::error::Error>> {
-        Ok(DeleteInputData{
-            id: req.id.clone(),
-        })
-    }
-
-    fn encode_output_delete(&self, _out: DeleteOutputData) -> DeleteResponse {
-        DeleteResponse{}
     }
 }
 
 #[tonic::async_trait]
 impl<S, T, U> WalletService for WalletServiceImpl<S, T, U>
 where
-    S: Port<CreateInputData, CreateOutputData> + Send + Sync + 'static,
-    T: Port<GetInputData, GetOutputData> + Send + Sync + 'static,
-    U: Port<DeleteInputData, DeleteOutputData> + Send + Sync + 'static,
+    S: Port<In = CreateInputData, Out = CreateOutputData> + Send + Sync + 'static,
+    T: Port<In = GetInputData, Out = GetOutputData> + Send + Sync + 'static,
+    U: Port<In = DeleteInputData, Out = DeleteOutputData> + Send + Sync + 'static,
 {
     async fn create(&self, req: Request<CreateRequest>) -> Result<Response<CreateResponse>, Status> {
-        println!(
-            "request: {:?} (from {:?})",
-            req.get_ref(),
-            req.remote_addr()
-        );
-
-        let input = CreateInputData{};
-        let output = self.create_port.exec(input)
-            .map_err(|e| Status::new(Code::Internal, e.to_string()))?;
-
-        let res = self.encode_output_create(output);
-
-        // TODO: use logging instead
-        println!("response: {:?}", res);
-
-        // return response
-        Ok(Response::new(res))
+        self.create_handler.handle(req)
     }
 
     async fn get(&self, req: Request<GetRequest>) -> Result<Response<GetResponse>, Status> {
-        println!(
-            "request: {:?} (from {:?})",
-            req.get_ref(),
-            req.remote_addr()
-        );
-
-        let input = self.encode_input_get(req.get_ref())
-            .map_err(|e| Status::new(Code::Internal, e.to_string()))?;
-        let output = self.get_port.exec(input)
-            .map_err(|e| Status::new(Code::Internal, e.to_string()))?;
-
-        let res = self.encode_output_get(output);
-
-        // TODO: use logging instead
-        println!("response: {:?}", res);
-
-        // return response
-        Ok(Response::new(res))
+        self.get_handler.handle(req)
     }
 
     async fn delete(&self, req: Request<DeleteRequest>) -> Result<Response<DeleteResponse>, Status> {
-        println!(
-            "request: {:?} (from {:?})",
-            req.get_ref(),
-            req.remote_addr()
-        );
-
-        let input = self.encode_input_delete(req.get_ref())
-            .map_err(|e| Status::new(Code::Internal, e.to_string()))?;
-        let output = self.delete_port.exec(input)
-            .map_err(|e| Status::new(Code::Internal, e.to_string()))?;
-
-        let res = self.encode_output_delete(output);
-
-        // TODO: use logging instead
-        println!("response: {:?}", res);
-
-        // return response
-        Ok(Response::new(res))
+        self.delete_handler.handle(req)
     }
 }

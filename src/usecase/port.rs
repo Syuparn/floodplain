@@ -1,8 +1,8 @@
-use mockall::{automock, predicate::*};
-
 use crate::domain::error::WalletError;
 
-#[automock]
-pub trait Port<In, Out> {
-    fn exec(&self, input: In) -> Result<Out, WalletError>;
+pub trait Port {
+    type In;
+    type Out;
+
+    fn exec(&self, input: Self::In) -> Result<Self::Out, WalletError>;
 }

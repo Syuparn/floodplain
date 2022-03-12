@@ -30,10 +30,13 @@ where
     }
 }
 
-impl<S> Port<GetInputData, GetOutputData> for GetInteractor<S>
+impl<S> Port for GetInteractor<S>
 where
     S: WalletRepository,
 {
+    type In = GetInputData;
+    type Out = GetOutputData;
+
     fn exec(&self, input: GetInputData) -> Result<GetOutputData, WalletError> {
         let wallet = self.wallet_repository.get(&WalletID(input.id))?;
         Ok(GetOutputData { wallet })

@@ -28,10 +28,13 @@ where
     }
 }
 
-impl<S> Port<DeleteInputData, DeleteOutputData> for DeleteInteractor<S>
+impl<S> Port for DeleteInteractor<S>
 where
     S: WalletRepository,
 {
+    type In = DeleteInputData;
+    type Out = DeleteOutputData;
+
     fn exec(&self, input: DeleteInputData) -> Result<DeleteOutputData, WalletError> {
         let wallet = self.wallet_repository.get(&WalletID(input.id))?;
         self.wallet_repository.delete(wallet)?;

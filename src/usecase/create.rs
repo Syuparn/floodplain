@@ -34,11 +34,14 @@ where
     }
 }
 
-impl<S, T> Port<CreateInputData, CreateOutputData> for CreateInteractor<S, T>
+impl<S, T> Port for CreateInteractor<S, T>
 where
     S: WalletRepository,
     T: WalletFactory,
 {
+    type In = CreateInputData;
+    type Out = CreateOutputData;
+
     fn exec(&self, _: CreateInputData) -> Result<CreateOutputData, WalletError> {
         let wallet = self.wallet_factory.create()?;
         self.wallet_repository.save(&wallet)?;
